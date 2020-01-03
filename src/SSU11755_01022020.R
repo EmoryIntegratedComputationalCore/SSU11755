@@ -11,8 +11,15 @@ files <-list(
   results_res1 = here("/SSU11755/Repository/output/SSU11755_BvsA_DEGanalysis.csv"),
   results_res2 = here("/SSU11755/Repository/output/SSU11755_CvsA_DEGanalysis.csv"),
   results_res3 = here("/SSU11755/Repository/output/SSU11755_CvsB_DEGanalysis.csv"),
-  graph_pca = here("/SSU11755/Repository/output/graphs/SSU11755_pca_group_01032020.png")
-  )
+  graph_pca = here("/SSU11755/Repository/output/graphs/SSU11755_pca_group_01032020.png"),
+  graph_ma1 = here("/SSU11755/Repository/output/graphs/SSU11755_ma_BvsA_01032020.png"),
+  graph_ma2 = here("/SSU11755/Repository/output/graphs/SSU11755_maplot_CvsA_01032020.png"),
+  graph_ma3 = here("/SSU11755/Repository/output/graphs/SSU11755_maplot_CvsB_01032020.png"),
+  graph_volc1 = here("/SSU11755/Repository/output/graphs/SSU11755_volcanoplot_BvA_01032020.png"),
+  graph_volc2 = here("/SSU11755/Repository/output/graphs/SSU11755_volcanoplot_CvA_01032020.png"),
+  graph_volc3 = here("/SSU11755/Repository/output/graphs/SSU11755_volcanoplot_CvB_01032020.png"),
+  graph_heat1 = here("/SSU11755/Repository/output/graphs/SSU11755_heatmapAref_01032020.png"),
+  graph_heat2 = here("/SSU11755/Repository/output/graphs/SSU11755_heatmapBref_01032020.png"))
 #verify(is_non_empty(files$list))
 
 #load count and sample data for all comparisons as a glm
@@ -66,18 +73,9 @@ res3_df<-as.data.frame(res3) %>%
   mutate(ID = as.factor((row.names(res3))))
 stopifnot(nrow(res3_df)==26485 & ncol(res3_df)==7) 
 
-#export
-res1_df %>%
-  write_delim(files$results_res1, delim=",")
-
-res2_df %>%
-  write_delim(files$results_res2, delim=",")
-
-res3_df %>%
-  write_delim(files$results_res3, delim=",")
-
 #obtain and include svalues in final results spreadsheet
 res_1LFC <- lfcShrink(dds1, coef="dose_group_B_vs_A", type="apeglm", svalue=TRUE)
+
 svalues1<-as.data.frame(res_1LFC$svalue)
 res1_df['S-value'] <- svalues1
 stopifnot(ncol(res1_df)==8)
@@ -94,6 +92,16 @@ svalues3<-as.data.frame(res_3LFC$svalue)
 res3_df['S-value'] <- svalues3
 stopifnot(ncol(res3_df)==8)
 
+#export
+res1_df %>%
+  write_delim(files$results_res1, delim=",")
+
+res2_df %>%
+  write_delim(files$results_res2, delim=",")
+
+res3_df %>%
+  write_delim(files$results_res3, delim=",")
+
 #visualization for PCA
 vsd1 <- vst(dds1, blind=FALSE) #dds1 looks the same 
 
@@ -101,8 +109,6 @@ pca<-plotPCA(vsd1, intgroup=c("dose_group"))
 
 #export 
 ggsave(files$graph_pca,plot=pca,dpi=1000)
-
-#these are the samples run in batch 1, found a batch effect
 
 #MA plots
 #compare B vs A
@@ -117,30 +123,28 @@ resLFC3 <- lfcShrink(dds2, coef="dose_group_C_vs_B", type="apeglm")
 #plot 1
 plotMA(resLFC1,ylim=c(-10,10), main="DE genes between 1x10^6 and 0")
 
-maplot1=png("output/graphs/SSU11755_maplot_BvsA_01032020.png", width=450, height=450)
-theme_set(theme_classic())
+maplot1=png(files$graph_ma1, width=450, height=450)
 plotMA(resLFC1,ylim=c(-10,10), main="DE genes between 1x10^6 and 0")
 dev.off()
 
 #plot 2
 plotMA(resLFC2,ylim=c(-10,10), main="DE genes between 1x10^9 and 0")
 
-maplot2=png("output/graphs/SSU11755_maplot_CvsA_01032020.png", width=450, height=450)
-theme_set(theme_classic())
+maplot2=png(files$graph_ma2, width=450, height=450)
 plotMA(resLFC2,ylim=c(-10,10), main="DE genes between 1x10^9 and 0")
 dev.off()
 
 #plot 3
 plotMA(resLFC3, ylim=c(-5,5), main="DE genes between 1x10^9 and 1x10^6")
 
-maplot3=png("output/graphs/SSU11755_maplot_CvsB_01032020.png", width=450, height=450)
+maplot3=png(files$graph_ma3, width=450, height=450)
 theme_set(theme_classic())
 plotMA(resLFC3,ylim=c(-5,5), main="DE genes between 1x10^9 and 1x10^6")
 dev.off()
 
 ###volcano plots###
 #res1
-EnhancedVolcano(res1,
+volc1<-EnhancedVolcano(res1,
                 lab = rownames(res1),
                 x = 'log2FoldChange',
                 y = 'padj',
@@ -153,8 +157,7 @@ EnhancedVolcano(res1,
                 legend=c('NS','Log2 fold-change','adj P-value',
                          'adj P-value & Log2 fold-change'))
 
-volc1=png("SSU11755_volcanoplot_1x10^6vs0_01022020.png", width=450, height=450)
-theme_set(theme_classic())
+volc1=png(files$graph_volc1, width=700, height=600)
 EnhancedVolcano(res1,
                 lab = rownames(res1),
                 x = 'log2FoldChange',
@@ -184,7 +187,7 @@ EnhancedVolcano(res2,
                 legend=c('NS','Log2 fold-change','adj P-value',
                          'adj P-value & Log2 fold-change'))
 
-volc2=png("SSU11755_volcanoplot_1x10^9vs0_01022020.png", width=700, height=600)
+volc2=png(files$graph_volc2, width=700, height=600)
 EnhancedVolcano(res2,
                 lab = rownames(res2),
                 x = 'log2FoldChange',
@@ -214,7 +217,7 @@ EnhancedVolcano(res3,
                 legend=c('NS','Log2 fold-change','adj P-value',
                          'adj P-value & Log2 fold-change'))
 
-volc3=png("SSU11755_volcanoplot_1x10^9vs1x10^6_01022020.png", width=700, height=600)
+volc3=png(files$graph_volc3, width=700, height=600)
 EnhancedVolcano(res3,
                 lab = rownames(res3),
                 x = 'log2FoldChange',
@@ -245,9 +248,6 @@ heatmap1<-
   pheatmap(assay(vsd1)[select,], cluster_rows=FALSE, show_rownames = TRUE,
            cluster_cols = TRUE, annotation_col = heat1)
 
-#another way to export graphics in high dpi
-ggsave("heatmap_Aasref_01022020.png",plot=heatmap1,dpi=1000)
-
 #dds2
 select<-
   order(rowMeans(counts(dds2, normalized=TRUE)),
@@ -259,7 +259,10 @@ heatmap2<-
   pheatmap(assay(vsd2)[select,], cluster_rows=FALSE, show_rownames = TRUE,
            cluster_cols = TRUE, annotation_col = heat2)
 
-ggsave("heatmap_Basref_01022020.png",plot=heatmap2,dpi=1000)
+#export
+ggsave(files$graph_heat1,plot=heatmap1,dpi=600)
+
+ggsave(files$graph_heat2,plot=heatmap2,dpi=600)
 
 #############################
 #pathway analysis
