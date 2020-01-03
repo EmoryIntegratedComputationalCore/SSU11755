@@ -20,7 +20,6 @@ files <-list(
   graph_volc3 = here("/SSU11755/Repository/output/graphs/SSU11755_volcanoplot_CvB_01032020.png"),
   graph_heat1 = here("/SSU11755/Repository/output/graphs/SSU11755_heatmapAref_01032020.png"),
   graph_heat2 = here("/SSU11755/Repository/output/graphs/SSU11755_heatmapBref_01032020.png"))
-#verify(is_non_empty(files$list))
 
 #load count and sample data for all comparisons as a glm
 countdata <-as.matrix(read.csv(files$counts, row.names=1))
@@ -28,7 +27,6 @@ countdata <-as.matrix(read.csv(files$counts, row.names=1))
 #sample data
 sampledata <-read.csv(files$sampledata, row.names=1)%>%
   janitor::clean_names()
-#fix verify(nrow(sampledata)== 9)
 
 stopifnot(rownames(sampledata) %in% colnames(countdata))
 
@@ -102,15 +100,15 @@ res2_df %>%
 res3_df %>%
   write_delim(files$results_res3, delim=",")
 
-#visualization for PCA
-vsd1 <- vst(dds1, blind=FALSE) #dds1 looks the same 
+####PCA
+vsd1 <- vst(dds1, blind=FALSE) #dds2 looks the same 
 
 pca<-plotPCA(vsd1, intgroup=c("dose_group"))
 
 #export 
 ggsave(files$graph_pca,plot=pca,dpi=1000)
 
-#MA plots
+####MA
 #compare B vs A
 resLFC1 <- lfcShrink(dds1, coef="dose_group_B_vs_A", type="apeglm")
 
@@ -142,7 +140,7 @@ theme_set(theme_classic())
 plotMA(resLFC3,ylim=c(-5,5), main="DE genes between 1x10^9 and 1x10^6")
 dev.off()
 
-###volcano plots###
+###Volcano
 #res1
 volc1<-EnhancedVolcano(res1,
                 lab = rownames(res1),
@@ -233,9 +231,7 @@ EnhancedVolcano(res3,
                          'adj P-value & Log2 fold-change'))
 dev.off()
 
-#heatmaps
-
-##heatmaps
+###Heatmaps
 #one for each comparison using vsd transformed data created for PCA plots
 #dds1
 select<-
@@ -249,6 +245,7 @@ heatmap1<-
            cluster_cols = TRUE, annotation_col = heat1)
 
 #dds2
+vsd2 <- vst(dds2, blind=FALSE) 
 select<-
   order(rowMeans(counts(dds2, normalized=TRUE)),
         decreasing = TRUE)[1:20]
