@@ -1,0 +1,10 @@
+SampleID,LibraryID,Organism,Annotation,DoseGroup,Batch,DoseBatch
+SSU_49870,SL407570,mouse,NP-Specific,B,One,Bone
+SSU_49871,SL407571,mouse,NP-Specific,C,One,Cone
+SSU_49872,SL407572,mouse,NP-Specific,A,One,Aone
+SSU_65981,SL407573,mouse,NP-Specific,B,Two,Btwo
+SSU_65982,SL407574,mouse,NP-Specific,C,Two,Ctwo
+SSU_65983,SL407575,mouse,NP-Specific,A,Two,Atwo
+SSU_65984,SL334587,mouse,NP-Specific,B,Two,Btwo
+SSU_65985,SL334588,mouse,NP-Specific,C,Two,Ctwo
+SSU_65986,SL334589,mouse,NP-Specific,A,Two,Atwo
