@@ -3,14 +3,16 @@ pacman::p_load("here", "readr", "janitor", "assertr", "tidyverse",
                "pheatmap", "org.Mm.eg.db", "AnnotationDbi", 
                "pathview", "gage", "gageData","dplyr")
 data(kegg.sets.mm)
+theme_set(theme_classic())
 
 files <-list(
   counts = here("/SSU11755/Repository/input/countdata.csv"), 
   sampledata = here("/SSU11755/Repository/input/sampledata.csv"),
   results_res1 = here("/SSU11755/Repository/output/SSU11755_BvsA_DEGanalysis.csv"),
   results_res2 = here("/SSU11755/Repository/output/SSU11755_CvsA_DEGanalysis.csv"),
-  results_res3 = here("/SSU11755/Repository/output/SSU11755_CvsB_DEGanalysis.csv")
-)
+  results_res3 = here("/SSU11755/Repository/output/SSU11755_CvsB_DEGanalysis.csv"),
+  graph_pca = here("/SSU11755/Repository/output/graphs/SSU11755_pca_group_01032020.png")
+  )
 #verify(is_non_empty(files$list))
 
 #load count and sample data for all comparisons as a glm
@@ -40,9 +42,6 @@ dds2$dose_group <- relevel(dds2$dose_group, ref = "B")
 #run nbinom model
 dds1 <- DESeq(dds1)
 dds2 <- DESeq(dds2)
-
-resultsNames(dds1)
-resultsNames(dds2)
 
 #comparisons
 res1 <- results(dds1, alpha=0.01, name="dose_group_B_vs_A")
@@ -96,17 +95,12 @@ res3_df['S-value'] <- svalues3
 stopifnot(ncol(res3_df)==8)
 
 #visualization for PCA
-vsd1 <- vst(dds1, blind=FALSE)
+vsd1 <- vst(dds1, blind=FALSE) #dds1 looks the same 
 
-vsd2 <- vst(dds2, blind=FALSE)
+pca<-plotPCA(vsd1, intgroup=c("dose_group"))
 
-plotPCA(vsd1, intgroup=c("dose_group"))
-
-#export plot
-pcaplot2=png("SSU11755_pcaplot_group_01022020.png", width=450, height=450)
-theme_set(theme_classic())
-plotPCA(vsd2, intgroup=c("dose_group"))
-dev.off()
+#export 
+ggsave(files$graph_pca,plot=pca,dpi=1000)
 
 #these are the samples run in batch 1, found a batch effect
 
@@ -120,25 +114,26 @@ resLFC2 <- lfcShrink(dds1, coef="dose_group_C_vs_A", type="apeglm")
 #compare C vs B
 resLFC3 <- lfcShrink(dds2, coef="dose_group_C_vs_B", type="apeglm")
 
+#plot 1
 plotMA(resLFC1,ylim=c(-10,10), main="DE genes between 1x10^6 and 0")
 
-maplot1=png("SSU11755_maplot_BvsA_01022020.png", width=450, height=450)
+maplot1=png("output/graphs/SSU11755_maplot_BvsA_01032020.png", width=450, height=450)
 theme_set(theme_classic())
 plotMA(resLFC1,ylim=c(-10,10), main="DE genes between 1x10^6 and 0")
 dev.off()
 
-#res2
+#plot 2
 plotMA(resLFC2,ylim=c(-10,10), main="DE genes between 1x10^9 and 0")
 
-maplot2=png("SSU11755_maplot_CvsA_01022020.png", width=450, height=450)
+maplot2=png("output/graphs/SSU11755_maplot_CvsA_01032020.png", width=450, height=450)
 theme_set(theme_classic())
 plotMA(resLFC2,ylim=c(-10,10), main="DE genes between 1x10^9 and 0")
 dev.off()
 
-#res3, no lfc threshold here
+#plot 3
 plotMA(resLFC3, ylim=c(-5,5), main="DE genes between 1x10^9 and 1x10^6")
 
-maplot3=png("SSU11755_maplot_CvsB_01022020.png", width=450, height=450)
+maplot3=png("output/graphs/SSU11755_maplot_CvsB_01032020.png", width=450, height=450)
 theme_set(theme_classic())
 plotMA(resLFC3,ylim=c(-5,5), main="DE genes between 1x10^9 and 1x10^6")
 dev.off()
