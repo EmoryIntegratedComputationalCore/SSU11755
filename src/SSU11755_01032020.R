@@ -106,7 +106,7 @@ vsd1 <- vst(dds1, blind=FALSE) #dds2 looks the same
 pca<-plotPCA(vsd1, intgroup=c("dose_group"))
 
 #export 
-ggsave(files$graph_pca,plot=pca,dpi=1000)
+ggsave(files$graph_pca,plot=pca,dpi=700)
 
 ####MA
 #compare B vs A
