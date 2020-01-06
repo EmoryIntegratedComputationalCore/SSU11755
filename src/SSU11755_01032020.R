@@ -18,8 +18,8 @@ files <-list(
   graph_volc1 = here("/output/graphs/SSU11755_volcanoplot_BvA_01032020.png"),
   graph_volc2 = here("/output/graphs/SSU11755_volcanoplot_CvA_01032020.png"),
   graph_volc3 = here("/output/graphs/SSU11755_volcanoplot_CvB_01032020.png"),
-  graph_heat1 = here("/output/graphs/SSU11755_heatmapAref_01032020.png"),
-  graph_heat2 = here("/output/graphs/SSU11755_heatmapBref_01032020.png"))
+  graph_heat1 = here("/output/graphs/SSU11755_heatmapAref_01062020.png"),
+  graph_heat2 = here("/output/graphs/SSU11755_heatmapBref_01062020.png"))
 
 #load count and sample data for all comparisons as a glm
 countdata <-as.matrix(read.csv(files$counts, row.names=1))
@@ -233,21 +233,30 @@ dev.off()
 
 ###Heatmaps
 #one for each comparison using vsd transformed data created for PCA plots
-#dds1
-select<-
-  order(rowMeans(counts(dds1, normalized=TRUE)),
-        decreasing = TRUE)[1:20]
+
+#remove samples from batch 1 
+vsd1_filt <- as.data.frame(assays(vsd1))
+vsd1_filt[c(1:5)] <-NULL
+#reorder by dose group from left to right, A to C
+vsd1_filt <- vsd1_filt[c(3,6,1,4,2,5)]
+
+select <- order(rowMeans(counts(dds1,normalized=TRUE)),
+                decreasing=TRUE)[1:20]
 heat1<-as.data.frame(colData(dds1)["dose_group"])
 
 #drop colnames from dds1
 (heatmap1<-
-  pheatmap(assay(vsd1)[select,], cluster_rows=FALSE, show_rownames = TRUE,
+  pheatmap(vsd1_filt[select,], cluster_rows=FALSE, show_rownames = TRUE,
            cluster_cols = FALSE, annotation_col = heat1))
 
-coolmap(countdata)
-
 #dds2
-vsd2 <- vst(dds2, blind=FALSE) 
+vsd2 <- vst(dds2, blind=FALSE)
+#remove samples from batch 1 
+vsd2_filt <- as.data.frame(assays(vsd2))
+vsd2_filt[c(1:5)] <-NULL
+#reorder by dose group from left to right, A to C
+vsd2_filt <- vsd2_filt[c(3,6,1,4,2,5)]
+
 select<-
   order(rowMeans(counts(dds2, normalized=TRUE)),
         decreasing = TRUE)[1:20]
@@ -255,7 +264,7 @@ heat2<-
   as.data.frame(colData(dds2)["dose_group"])
 
 heatmap2<-
-  pheatmap(assay(vsd2)[select,], cluster_rows=FALSE, show_rownames = TRUE,
+  pheatmap(vsd2_filt[select,], cluster_rows=FALSE, show_rownames = TRUE,
            cluster_cols = TRUE, annotation_col = heat2)
 
 #export
