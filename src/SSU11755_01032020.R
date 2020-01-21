@@ -39,23 +39,26 @@ dds2 <- DESeqDataSetFromMatrix(countData = countdata,
                                design = ~batch*dose_group)
 #set the reference level
 #comparing B to A and C to A
-dds1$dose_group <- relevel(dds1$dose_group, ref = "A")
+dds1$dose_group <- relevel(dds1$dose_group, ref = "0")
 
 #comparing C to B
-dds2$dose_group <- relevel(dds2$dose_group, ref = "B")
+dds2$dose_group <- relevel(dds2$dose_group, ref = "1x10^6 HAd_NP")
 
 #run nbinom model
 dds1 <- DESeq(dds1)
 dds2 <- DESeq(dds2)
 
+resultsNames(dds1)
+resultsNames(dds2)
+
 #comparisons
-res1 <- results(dds1, alpha=0.01, name="dose_group_B_vs_A")
+res1 <- results(dds1, alpha=0.01, name="dose_group_1x10.6.HAd_NP_vs_0")
 summary(res1)
 
-res2 <- results(dds1, alpha=0.01, name="dose_group_C_vs_A")
+res2 <- results(dds1, alpha=0.01, name="dose_group_1x10.9.HAd_NP_vs_0")
 summary(res2)
 
-res3 <- results(dds2, alpha=0.01, name="dose_group_C_vs_B")
+res3 <- results(dds2, alpha=0.01, name="dose_group_1x10.9.HAd_NP_vs_1x10.6.HAd_NP")
 summary(res3)
 
 #create data frames of results of each comparison with gene symbol in a column called  ID
@@ -249,28 +252,8 @@ heat1<-as.data.frame(colData(dds1)["dose_group"])
   pheatmap(vsd1_filt[select,], cluster_rows=FALSE, show_rownames = TRUE,
            cluster_cols = FALSE, annotation_col = heat1))
 
-#dds2
-vsd2 <- vst(dds2, blind=FALSE)
-#remove samples from batch 1 
-vsd2_filt <- as.data.frame(assays(vsd2))
-vsd2_filt[c(1:5)] <-NULL
-#reorder by dose group from left to right, A to C
-vsd2_filt <- vsd2_filt[c(3,6,1,4,2,5)]
-
-select<-
-  order(rowMeans(counts(dds2, normalized=TRUE)),
-        decreasing = TRUE)[1:20]
-heat2<-
-  as.data.frame(colData(dds2)["dose_group"])
-
-heatmap2<-
-  pheatmap(vsd2_filt[select,], cluster_rows=FALSE, show_rownames = TRUE,
-           cluster_cols = TRUE, annotation_col = heat2)
-
 #export
 ggsave(files$graph_heat1,plot=heatmap1,dpi=600)
-
-ggsave(files$graph_heat2,plot=heatmap2,dpi=600)
 
 #############################
 #pathway analysis
