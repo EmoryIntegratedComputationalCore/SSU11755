@@ -6,20 +6,20 @@ data(kegg.sets.mm)
 theme_set(theme_classic())
 
 files <-list(
-  counts = here("input/countdata.csv"), 
-  sampledata = here("/input/sampledata.csv"),
-  results_res1 = here("/output/SSU11755_BvsA_DEGanalysis.csv"),
-  results_res2 = here("/output/SSU11755_CvsA_DEGanalysis.csv"),
-  results_res3 = here("/output/SSU11755_CvsB_DEGanalysis.csv"),
-  graph_pca = here("/output/graphs/SSU11755_pca_group_01032020.png"),
-  graph_ma1 = here("/output/graphs/SSU11755_ma_BvsA_01032020.png"),
-  graph_ma2 = here("/output/graphs/SSU11755_maplot_CvsA_01032020.png"),
-  graph_ma3 = here("/output/graphs/SSU11755_maplot_CvsB_01032020.png"),
-  graph_volc1 = here("/output/graphs/SSU11755_volcanoplot_BvA_01032020.png"),
-  graph_volc2 = here("/output/graphs/SSU11755_volcanoplot_CvA_01032020.png"),
-  graph_volc3 = here("/output/graphs/SSU11755_volcanoplot_CvB_01032020.png"),
-  graph_heat1 = here("/output/graphs/SSU11755_heatmapAref_01062020.png"),
-  graph_heat2 = here("/output/graphs/SSU11755_heatmapBref_01062020.png"))
+  counts = here("SSU11755/Repository/input/countdata.csv"), 
+  sampledata = here("SSU11755/Repository/input/sampledata.csv"),
+  results_res1 = here("SSU11755/Repository/output/SSU11755_BvsA_DEGanalysis.csv"),
+  results_res2 = here("SSU11755/Repository/output/SSU11755_CvsA_DEGanalysis.csv"),
+  results_res3 = here("SSU11755/Repository/output/SSU11755_CvsB_DEGanalysis.csv"),
+  graph_pca = here("SSU11755/Repository/output/graphs/SSU11755_pca_group_01032020.png"),
+  graph_ma1 = here("SSU11755/Repository/output/graphs/SSU11755_ma_BvsA_01032020.png"),
+  graph_ma2 = here("SSU11755/Repository/output/graphs/SSU11755_maplot_CvsA_01032020.png"),
+  graph_ma3 = here("SSU11755/Repository/output/graphs/SSU11755_maplot_CvsB_01032020.png"),
+  graph_volc1 = here("SSU11755/Repository/output/graphs/SSU11755_volcanoplot_BvA_01032020.png"),
+  graph_volc2 = here("SSU11755/Repository/output/graphs/SSU11755_volcanoplot_CvA_01032020.png"),
+  graph_volc3 = here("SSU11755/Repository/output/graphs/SSU11755_volcanoplot_CvB_01032020.png"),
+  graph_heat1 = here("SSU11755/Repository/output/graphs/SSU11755_heatmapAref_01062020.png"),
+  graph_heat2 = here("SSU11755/Repository/output/graphs/SSU11755_heatmapBref_01062020.png"))
 
 #load count and sample data for all comparisons as a glm
 countdata <-as.matrix(read.csv(files$counts, row.names=1))
