@@ -18,8 +18,10 @@ files <-list(
   graph_volc1 = here("SSU11755/Repository/output/graphs/SSU11755_volcanoplot_BvA_01032020.png"),
   graph_volc2 = here("SSU11755/Repository/output/graphs/SSU11755_volcanoplot_CvA_01032020.png"),
   graph_volc3 = here("SSU11755/Repository/output/graphs/SSU11755_volcanoplot_CvB_01032020.png"),
-  graph_heat1 = here("SSU11755/Repository/output/graphs/SSU11755_heatmapAref_01062020.png"),
-  graph_heat2 = here("SSU11755/Repository/output/graphs/SSU11755_heatmapBref_01062020.png"))
+  graph_heat1 = here("SSU11755/Repository/output/graphs/SSU11755_heatmapAref.png"),
+  graph_heat2 = here("SSU11755/Repository/output/graphs/SSU11755_heatmapAref2.png"),
+  graph_heat3 = here("SSU11755/Repository/output/graphs/SSU11755_heatmapBref.png") 
+  )
 
 #load count and sample data for all comparisons as a glm
 countdata <-as.matrix(read.csv(files$counts, row.names=1))
@@ -237,23 +239,42 @@ dev.off()
 ###Heatmaps
 #one for each comparison using vsd transformed data created for PCA plots
 
-#remove samples from batch 1 
+#1, B vs A
 vsd1_filt <- as.data.frame(assays(vsd1))
 vsd1_filt[c(1:5)] <-NULL
 #reorder by dose group from left to right, A to C
 vsd1_filt <- vsd1_filt[c(3,6,1,4,2,5)]
 
-select <- order(rowMeans(counts(dds1,normalized=TRUE)),
-                decreasing=TRUE)[1:20]
+select1<-order(res1_df$padj, decreasing = FALSE)[1:20]
+
 heat1<-as.data.frame(colData(dds1)["dose_group"])
 
-#drop colnames from dds1
-(heatmap1<-
-  pheatmap(vsd1_filt[select,], cluster_rows=FALSE, show_rownames = TRUE,
-           cluster_cols = FALSE, annotation_col = heat1))
+(ht1<-pheatmap(vsd1_filt[select2,],cluster_rows=FALSE, show_rownames = TRUE,
+               cluster_cols = TRUE, annotation_col = heat1))
 
 #export
-ggsave(files$graph_heat1,plot=heatmap1,dpi=600)
+ggsave(files$graph_heat1,plot=ht1,dpi=600)
+
+
+#2, C vs A, dds 1, res 2 
+vsd2_filt <- as.data.frame(assays(vsd1))
+vsd2_filt[c(1:5)] <-NULL
+#reorder by dose group from left to right, A to C
+vsd2_filt <- vsd2_filt[c(3,6,1,4,2,5)]
+
+select2<-order(res2_df$padj, decreasing = FALSE)[1:20]
+
+heat2<-as.data.frame(colData(dds1)["dose_group"])
+
+(ht2<-pheatmap(vsd2_filt[select2,],cluster_rows=FALSE, show_rownames = TRUE,
+               cluster_cols = TRUE, annotation_col = heat2))
+
+#export
+ggsave(files$graph_heat2,plot=ht2,dpi=600)
+
+# 3 C vs B, dds2, res 3
+vsd2<- vst(dds2, blind=FALSE)
+
 
 #############################
 #pathway analysis
