@@ -8,19 +8,19 @@ theme_set(theme_classic())
 files <- list(
   counts = here("SSU11755/Repository/input/countdata.csv"),
   sampledata = here("SSU11755/Repository/input/sampledata.csv"),
-  results_res1 = here("SSU11755/Repository/output/SSU11755_BvsA_DEGanalysis.csv"),
-  results_res2 = here("SSU11755/Repository/output/SSU11755_CvsA_DEGanalysis.csv"),
-  results_res3 = here("SSU11755/Repository/output/SSU11755_CvsB_DEGanalysis.csv"),
-  graph_pca = here("SSU11755/Repository/output/graphs/SSU11755_pca_group_01032020.png"),
-  graph_ma1 = here("SSU11755/Repository/output/graphs/SSU11755_ma_BvsA_01032020.png"),
-  graph_ma2 = here("SSU11755/Repository/output/graphs/SSU11755_maplot_CvsA_01032020.png"),
-  graph_ma3 = here("SSU11755/Repository/output/graphs/SSU11755_maplot_CvsB_01032020.png"),
-  graph_volc1 = here("SSU11755/Repository/output/graphs/SSU11755_volcanoplot_BvA_01032020.png"),
-  graph_volc2 = here("SSU11755/Repository/output/graphs/SSU11755_volcanoplot_CvA_01032020.png"),
-  graph_volc3 = here("SSU11755/Repository/output/graphs/SSU11755_volcanoplot_CvB_01032020.png"),
-  graph_heat1 = here("SSU11755/Repository/output/graphs/SSU11755_heatmapAref.png"),
-  graph_heat2 = here("SSU11755/Repository/output/graphs/SSU11755_heatmapAref2.png"),
-  graph_heat3 = here("SSU11755/Repository/output/graphs/SSU11755_heatmapBref.png")
+  results_res1 = here("SSU11755/Repository/output/SSU11755_6vsNaive_DEGanalysis.csv"),
+  results_res2 = here("SSU11755/Repository/output/SSU11755_9vsNaive_DEGanalysis.csv"),
+  results_res3 = here("SSU11755/Repository/output/SSU11755_9vs6_DEGanalysis.csv"),
+  graph_pca = here("SSU11755/Repository/output/graphs/SSU11755_pca_group.png"),
+  graph_ma1 = here("SSU11755/Repository/output/graphs/SSU11755_ma_6vsNaive.png"),
+  graph_ma2 = here("SSU11755/Repository/output/graphs/SSU11755_ma_9vsNaive.png"),
+  graph_ma3 = here("SSU11755/Repository/output/graphs/SSU11755_ma_9vs6.png"),
+  graph_volc1 = here("SSU11755/Repository/output/graphs/SSU11755_volcano_6vsNaive.png"),
+  graph_volc2 = here("SSU11755/Repository/output/graphs/SSU11755_volcano_9vsNaive.png"),
+  graph_volc3 = here("SSU11755/Repository/output/graphs/SSU11755_volcano_9vs6.png"),
+  graph_heat1 = here("SSU11755/Repository/output/graphs/SSU11755_heatmapNaiveref.png"),
+  graph_heat2 = here("SSU11755/Repository/output/graphs/SSU11755_heatmapNaiveref2.png"),
+  graph_heat3 = here("SSU11755/Repository/output/graphs/SSU11755_heatmap6ref.png")
   )
 
 #load count and sample data for all comparisons as a glm
@@ -161,8 +161,12 @@ dev.off()
 vsd1_filt <- as.data.frame(assays(vsd1))
 vsd1_filt[c(1:5)] <- NULL
 
-#reorder by dose group from left to right, A to C
-vsd1_filt <- vsd1_filt[c(3, 6, 1, 4, 2, 5)]
+#remove samples in 9 group
+vsd1_filt[2] <- NULL
+vsd1_filt[4] <- NULL
+
+#reorder by dose group from left to right
+vsd1_filt <- vsd1_filt[c(2, 4, 1, 3)]
 
 #select only top 20 DE genes
 select1 <- order(res1_df$padj, decreasing = FALSE)[1:20]
@@ -171,30 +175,41 @@ select1 <- order(res1_df$padj, decreasing = FALSE)[1:20]
 heat1 <- as.data.frame(colData(dds1)["dose_group"])
 
 #change order in which columns appear
-callback1 = function(hc,mat){
+callback = function(hc,mat){
   sv = svd(t(mat))$v[,1]
   dend = reorder(as.dendrogram (hc), wts = sv)
   as.hclust(dend)
 }
 
-#specify naive as green
+#specify naive as green, 6 is pink
 #set color order
-colororder = list(
-  dose_group = c("Naïve"="#ccebc5", "1x10^6 HAd_NP"="#fbb4ae", "1x10^9 HAd_NP"="#b3cde3"))
+colororder1 = list(
+  dose_group = c("1x10^6 HAd_NP"="#fbb4ae", "Naïve"="#ccebc5"))
 
 #plot
-(ht1 <- pheatmap(vsd1_filt[select1, ], 
-                 cluster_rows=FALSE, 
-                 show_rownames = TRUE,
-                 cluster_cols = TRUE, 
-                 annotation_col = heat1, 
-                 clustering_callback = callback,
-                 annotation_colors = colororder))
+ht1 <- pheatmap(vsd1_filt[select1, ],
+                cluster_rows=FALSE,
+                show_rownames = TRUE,
+                cluster_cols = TRUE,
+                annotation_col = heat1,
+                clustering_callback = callback,
+                annotation_colors = colororder1, 
+                width = 1)
 
 #export
 ggsave(files$graph_heat1, plot=ht1, dpi=600)
 
 #2, 9 vs Naive
+#remove samples in batch 1 group
+vsd2_filt <- as.data.frame(assays(vsd1))
+vsd2_filt[c(1:5)] <- NULL
+
+#remove samples in 6 group
+vsd2_filt[1] <- NULL
+vsd2_filt[3] <- NULL
+
+#reorder by dose group from left to right
+vsd2_filt <- vsd2_filt[c(2, 4, 1, 3)]
 
 #top 20 DE genes in comparison
 select2 <- order(res2_df$padj, decreasing = FALSE)[1:20]
@@ -202,14 +217,20 @@ select2 <- order(res2_df$padj, decreasing = FALSE)[1:20]
 #choose variable of interest
 heat2 <- as.data.frame(colData(dds1)["dose_group"])
 
+#specify naive as green, 9 is blue
+#set color order
+colororder2 = list(
+  dose_group = c("1x10^9 HAd_NP"="#b3cde4", "Naïve"="#ccebc5"))
+
 #plot
-(ht2 <- pheatmap(vsd1_filt[select2, ], 
+ht2 <- pheatmap(vsd2_filt[select2, ], 
                  cluster_rows=FALSE, 
                  show_rownames = TRUE,
                  cluster_cols = TRUE, 
                  annotation_col = heat2, 
                  clustering_callback = callback,
-                 annotation_colors = colororder))
+                 annotation_colors = colororder2, 
+                 width = 1)
 
 #export
 ggsave(files$graph_heat2, plot=ht2, dpi=600)
@@ -271,28 +292,41 @@ EnhancedVolcano(res3,
 dev.off()
 
 ###Heatmaps
-#3 9 vs 6
+#3, 9 vs 6
+
 #VST transformation
-vsd2 <- vst(dds1, blind=FALSE)
+vsd3 <- vst(dds1, blind=FALSE)
 
 #remove samples from batch 1
-vsd2_filt <- as.data.frame(assays(vsd2))
-vsd2_filt[c(1:5)] <-NULL
+vsd3_filt <- as.data.frame(assays(vsd3))
+vsd3_filt[c(1:5)] <-NULL
 
-#reorder by dose group from left to right, A to C
-vsd2_filt <- vsd2_filt[c(3,6,1,4,2,5)]
+#remove samples in naive group
+vsd3_filt[3] <- NULL
+vsd3_filt[6] <- NULL
 
-select3<-order(res3_df$padj, decreasing = FALSE)[1:20]
+#reorder by dose group from left to right
+vsd3_filt <- vsd3_filt[c(2, 4, 3, 1)]
 
-heat3<-as.data.frame(colData(dds1)["dose_group"])
+#top 20 DE genes in comparison
+select3 <- order(res3_df$padj, decreasing = FALSE)[1:20]
 
-(ht3<-pheatmap(vsd2_filt[select3,], 
+#choose variable of interest
+heat3 <- as.data.frame(colData(dds1)["dose_group"])
+
+#specify naive as green
+#set color order
+colororder3 = list(
+  dose_group = c("1x10^9 HAd_NP"="#b3cde4", "1x10^6 HAd_NP"="#fbb4ae"))
+
+ht3<-pheatmap(vsd3_filt[select3,], 
                cluster_rows=FALSE,
                show_rownames = TRUE,
                cluster_cols = TRUE,
                annotation_col = heat3,
                clustering_callback = callback,
-               annotation_colors = colororder))
+               annotation_colors = colororder3,
+               width = 1)
 
 #export
 ggsave(files$graph_heat3,plot=ht3,dpi=600)
@@ -350,23 +384,21 @@ head(res3, 10)
 #get a matrix of fold changes and entrez ids
 foldchanges1 <- res1$log2FoldChange
 names(foldchanges1) <- res1$entrez
-head(foldchanges1)
 
 #res2
 foldchanges2 <- res2$log2FoldChange
 names(foldchanges2) <- res2$entrez
-head(foldchanges2)
 
 #res3
 foldchanges3 <- res3$log2FoldChange
 names(foldchanges3) <- res3$entrez
-head(foldchanges3)
 
 #run KEGG pathway analysis
 keggres1 <- gage(foldchanges1, gsets= kegg.sets.mm, same.dir=TRUE)
+
 # Look at both up (greater), down (less), and statistics
 lapply(keggres1, head, 10)
-dim(keggres1$less) #225 6
+
 #no pathways at FDR <0.1, complement and coagulation at 0.2
 
 #keggres2
