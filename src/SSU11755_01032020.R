@@ -35,33 +35,18 @@ stopifnot(rownames(sampledata) %in% colnames(countdata))
 dds1 <- DESeqDataSetFromMatrix(countData = countdata,
                               colData = sampledata,
                               design = ~batch * dose_group)
-
-dds2 <- DESeqDataSetFromMatrix(countData = countdata,
-                               colData = sampledata,
-                               design = ~batch * dose_group)
 #set the reference level
 #comparing B to A and C to A
-dds1$dose_group <- relevel(dds1$dose_group, ref = "0")
-
-#comparing C to B
-dds2$dose_group <- relevel(dds2$dose_group, ref = "1x10^6 HAd_NP")
-
-#run nbinom model
+dds1$dose_group <- relevel(dds1$dose_group, ref = "Naïve")
 dds1 <- DESeq(dds1)
-dds2 <- DESeq(dds2)
 
-resultsNames(dds1)
-resultsNames(dds2)
-
-#comparisons
-res1 <- results(dds1, alpha=0.01, name="dose_group_1x10.6.HAd_NP_vs_0")
+#6 to Naive
+res1 <- results(dds1, alpha=0.01, name="dose_group_1x10.6.HAd_NP_vs_Naïve")
 summary(res1)
 
-res2 <- results(dds1, alpha=0.01, name="dose_group_1x10.9.HAd_NP_vs_0")
+#9 to naive
+res2 <- results(dds1, alpha=0.01, name="dose_group_1x10.9.HAd_NP_vs_Naïve")
 summary(res2)
-
-res3 <- results(dds2, alpha=0.01, name="dose_group_1x10.9.HAd_NP_vs_1x10.6.HAd_NP")
-summary(res3)
 
 #create data frames of results of each comparison with gene symbol in a column called  ID
 res1_df <- as.data.frame(res1) %>%
@@ -72,29 +57,6 @@ res2_df <- as.data.frame(res2) %>%
   mutate(ID = as.factor((row.names(res2))))
 stopifnot(nrow(res2_df) == 26485 & ncol(res2_df) == 7)
 
-res3_df <- as.data.frame(res3) %>%
-  mutate(ID = as.factor((row.names(res3))))
-stopifnot(nrow(res3_df) == 26485 & ncol(res3_df) == 7)
-
-#obtain and include svalues in final results spreadsheet
-res_1LFC <- lfcShrink(dds1, coef="dose_group_B_vs_A", type="apeglm", svalue=TRUE)
-
-svalues1 <- as.data.frame(res_1LFC$svalue)
-res1_df["S-value"] <- svalues1
-stopifnot(ncol(res1_df) == 8)
-
-#svalues
-res_2LFC <- lfcShrink(dds1, coef="dose_group_C_vs_A", type="apeglm", svalue=TRUE)
-svalues2 <- as.data.frame(res_2LFC$svalue)
-res2_df["S-value"] <- svalues2
-stopifnot(ncol(res2_df) == 8)
-
-#svalues
-res_3LFC <- lfcShrink(dds2, coef="dose_group_C_vs_B", type="apeglm", svalue=TRUE)
-svalues3 <- as.data.frame(res_3LFC$svalue)
-res3_df["S-value"] <- svalues3
-stopifnot(ncol(res3_df) == 8)
-
 #export
 res1_df %>%
   write_delim(files$results_res1, delim=",")
@@ -102,63 +64,49 @@ res1_df %>%
 res2_df %>%
   write_delim(files$results_res2, delim=",")
 
-res3_df %>%
-  write_delim(files$results_res3, delim=",")
-
 ####PCA
-vsd1 <- vst(dds1, blind=FALSE) #dds2 looks the same
+vsd1 <- vst(dds1, blind=FALSE)
 
-pca <- plotPCA(vsd1, intgroup=c("dose_group"))
+(pca <- plotPCA(vsd1, intgroup=c("dose_group")))
 
 #export
 ggsave(files$graph_pca, plot=pca, dpi=700)
 
-####MA
-#compare B vs A
-resLFC1 <- lfcShrink(dds1, coef="dose_group_B_vs_A", type="apeglm")
+####MA #FIXME: change to most recent coef names
+#compare 6 vs Naive
+resLFC1 <- lfcShrink(dds1, coef="dose_group_1x10.6.HAd_NP_vs_Naïve", type="apeglm")
 
-#compare C vs A
-resLFC2 <- lfcShrink(dds1, coef="dose_group_C_vs_A", type="apeglm")
-
-#compare C vs B
-resLFC3 <- lfcShrink(dds2, coef="dose_group_C_vs_B", type="apeglm")
+#compare 9 vs Naive
+resLFC2 <- lfcShrink(dds1, coef="dose_group_1x10.9.HAd_NP_vs_Naïve", type="apeglm")
 
 #plot 1
-plotMA(resLFC1, ylim=c(-10, 10), main="DE genes between 1x10^6 and 0")
+plotMA(resLFC1, ylim=c(-10, 10), main="DE genes between 1x10^6 and Naïve")
 
 maplot1 <- png(files$graph_ma1, width=450, height=450)
-plotMA(resLFC1, ylim=c(-10, 10), main="DE genes between 1x10^6 and 0")
+plotMA(resLFC1, ylim=c(-10, 10), main="DE genes between 1x10^6 and Naïve")
 dev.off()
 
 #plot 2
-plotMA(resLFC2, ylim=c(-10, 10), main="DE genes between 1x10^9 and 0")
+plotMA(resLFC2, ylim=c(-10, 10), main="DE genes between 1x10^9 and Naïve")
 
 maplot2 <- png(files$graph_ma2, width=450, height=450)
-plotMA(resLFC2, ylim=c(-10, 10), main="DE genes between 1x10^9 and 0")
-dev.off()
-
-#plot 3
-plotMA(resLFC3, ylim=c(-5, 5), main="DE genes between 1x10^9 and 1x10^6")
-
-maplot3 <- png(files$graph_ma3, width=450, height=450)
-theme_set(theme_classic())
-plotMA(resLFC3, ylim=c(-5, 5), main="DE genes between 1x10^9 and 1x10^6")
+plotMA(resLFC2, ylim=c(-10, 10), main="DE genes between 1x10^9 and Naïve")
 dev.off()
 
 ###Volcano
 #res1
 volc1 <- EnhancedVolcano(res1,
-                lab = rownames(res1),
-                x = "log2FoldChange",
-                y = "padj",
-                xlim = c(-10, 10),
-                title= NULL,
-                subtitle= NULL,
-                pLabellingCutoff = 0.01,
-                pCutoff = 0.01,
-                legendPosition = "bottom",
-                legend=c("NS", "Log2 fold-change", "adj P-value",
-                         "adj P-value & Log2 fold-change"))
+                         lab = rownames(res1),
+                         x = "log2FoldChange",
+                         y = "padj",
+                         xlim = c(-10, 10),
+                         title= NULL,
+                         subtitle= NULL,
+                         pLabellingCutoff = 0.01,
+                         pCutoff = 0.01,
+                         legendPosition = "bottom",
+                         legend=c("NS", "Log2 fold-change", "adj P-value",
+                                  "adj P-value & Log2 fold-change"))
 
 volc1 <- png(files$graph_volc1, width=700, height=600)
 EnhancedVolcano(res1,
@@ -172,7 +120,7 @@ EnhancedVolcano(res1,
                 pCutoff = 0.01,
                 legendPosition = "bottom",
                 legend=c("NS", "Log2 fold-change", "adj P-value",
-                         "adj P-value & Log2 fold-change")))
+                         "adj P-value & Log2 fold-change"))
 dev.off()
 
 #res2
@@ -187,7 +135,7 @@ EnhancedVolcano(res2,
                 pCutoff = 0.01,
                 legendPosition = "bottom",
                 legend=c("NS", "Log2 fold-change", "adj P-value",
-                         "adj P-value & Log2 fold-change")))
+                         "adj P-value & Log2 fold-change"))
 
 volc2 <- png(files$graph_volc2, width=700, height=600)
 EnhancedVolcano(res2,
@@ -201,8 +149,98 @@ EnhancedVolcano(res2,
                 pCutoff = 0.01,
                 legendPosition = "bottom",
                 legend=c("NS", "Log2 fold-change", "adj P-value",
-                         "adj P-value & Log2 fold-change")))
+                         "adj P-value & Log2 fold-change"))
 dev.off()
+
+###Heatmaps
+#one for each comparison using vsd transformed data created for PCA plots
+
+#1, 6 vs Naive
+
+#remove samples from batch 1
+vsd1_filt <- as.data.frame(assays(vsd1))
+vsd1_filt[c(1:5)] <- NULL
+
+#reorder by dose group from left to right, A to C
+vsd1_filt <- vsd1_filt[c(3, 6, 1, 4, 2, 5)]
+
+#select only top 20 DE genes
+select1 <- order(res1_df$padj, decreasing = FALSE)[1:20]
+
+#select vars of interest
+heat1 <- as.data.frame(colData(dds1)["dose_group"])
+
+#change order in which columns appear
+callback1 = function(hc,mat){
+  sv = svd(t(mat))$v[,1]
+  dend = reorder(as.dendrogram (hc), wts = sv)
+  as.hclust(dend)
+}
+
+#specify naive as green
+#set color order
+colororder = list(
+  dose_group = c("Naïve"="#ccebc5", "1x10^6 HAd_NP"="#fbb4ae", "1x10^9 HAd_NP"="#b3cde3"))
+
+#plot
+(ht1 <- pheatmap(vsd1_filt[select1, ], 
+                 cluster_rows=FALSE, 
+                 show_rownames = TRUE,
+                 cluster_cols = TRUE, 
+                 annotation_col = heat1, 
+                 clustering_callback = callback,
+                 annotation_colors = colororder))
+
+#export
+ggsave(files$graph_heat1, plot=ht1, dpi=600)
+
+#2, 9 vs Naive
+
+#top 20 DE genes in comparison
+select2 <- order(res2_df$padj, decreasing = FALSE)[1:20]
+
+#choose variable of interest
+heat2 <- as.data.frame(colData(dds1)["dose_group"])
+
+#plot
+(ht2 <- pheatmap(vsd1_filt[select2, ], 
+                 cluster_rows=FALSE, 
+                 show_rownames = TRUE,
+                 cluster_cols = TRUE, 
+                 annotation_col = heat2, 
+                 clustering_callback = callback,
+                 annotation_colors = colororder))
+
+#export
+ggsave(files$graph_heat2, plot=ht2, dpi=600)
+
+#comparing 9 to 6
+dds1$dose_group <- relevel(dds1$dose_group, ref = "1x10^6 HAd_NP")
+dds1 <- DESeq(dds1)
+
+#9 to 6 
+res3 <- results(dds1, alpha=0.01, name="dose_group_1x10.9.HAd_NP_vs_1x10.6.HAd_NP")
+summary(res3)
+
+#create data frames of results of each comparison with gene symbol in a column called  ID
+res3_df <- as.data.frame(res3) %>%
+  mutate(ID = as.factor((row.names(res3))))
+stopifnot(nrow(res3_df) == 26485 & ncol(res3_df) == 7)
+
+res3_df %>%
+  write_delim(files$results_res3, delim=",")
+
+####MA
+#compare 9 vs 6
+resLFC3 <- lfcShrink(dds1, coef="dose_group_1x10.9.HAd_NP_vs_1x10.6.HAd_NP", type="apeglm")
+
+#plot 3
+plotMA(resLFC3, ylim=c(-5, 5), main="DE genes between 1x10^9 and 1x10^6")
+
+maplot3 <- png(files$graph_ma3, width=450, height=450)
+plotMA(resLFC3, ylim=c(-5, 5), main="DE genes between 1x10^9 and 1x10^6")
+dev.off()
+
 #res3
 EnhancedVolcano(res3,
                 lab = rownames(res3),
@@ -215,7 +253,7 @@ EnhancedVolcano(res3,
                 pCutoff = 0.01,
                 legendPosition = "bottom",
                 legend=c("NS", "Log2 fold-change", "adj P-value",
-                         "adj P-value & Log2 fold-change")))
+                         "adj P-value & Log2 fold-change"))
 
 volc3 <- png(files$graph_volc3, width=700, height=600)
 EnhancedVolcano(res3,
@@ -229,61 +267,35 @@ EnhancedVolcano(res3,
                 pCutoff = 0.01,
                 legendPosition = "bottom",
                 legend=c("NS", "Log2 fold-change", "adj P-value",
-                         "adj P-value & Log2 fold-change")))
+                         "adj P-value & Log2 fold-change"))
 dev.off()
 
 ###Heatmaps
-#one for each comparison using vsd transformed data created for PCA plots
+#3 9 vs 6
+#VST transformation
+vsd2 <- vst(dds1, blind=FALSE)
 
-#1, B vs A
-vsd1_filt <- as.data.frame(assays(vsd1))
-vsd1_filt[c(1:5)] <- NULL
+#remove samples from batch 1
+vsd2_filt <- as.data.frame(assays(vsd2))
+vsd2_filt[c(1:5)] <-NULL
+
 #reorder by dose group from left to right, A to C
-vsd1_filt <- vsd1_filt[c(3, 6, 1, 4, 2, 5)]
-
-select1 <- order(res1_df$padj, decreasing = FALSE)[1:20]
-
-heat1 <- as.data.frame(colData(dds1)["dose_group"])
-
-(ht1 <- pheatmap(vsd1_filt[select2, ], cluster_rows=FALSE, show_rownames = TRUE,
-               cluster_cols = TRUE, annotation_col = heat1))
-
-#export
-ggsave(files$graph_heat1, plot=ht1, dpi=600)
-
-#2, C vs A, dds 1, res 2
-vsd2_filt <- as.data.frame(assays(vsd1))
-vsd2_filt[c(1:5)] <- NULL
-#reorder by dose group from left to right, A to C
-vsd2_filt <- vsd2_filt[c(3, 6, 1, 4, 2, 5)]
-
-select2 <- order(res2_df$padj, decreasing = FALSE)[1:20]
-
-heat2 <- as.data.frame(colData(dds1)["dose_group"])
-
-(ht2 <- pheatmap(vsd2_filt[select2, ], cluster_rows=FALSE, show_rownames = TRUE,
-               cluster_cols = TRUE, annotation_col = heat2))
-
-#export
-ggsave(files$graph_heat2, plot=ht2, dpi=600)
-
-# 3 C vs B, dds2, res 3
-vsd3<- vst(dds2, blind=FALSE)
-vsd3_filt <- as.data.frame(assays(vsd3))
-vsd3_filt[c(1:5)] <-NULL
-#reorder by dose group from left to right, A to C
-vsd3_filt <- vsd3_filt[c(3,6,1,4,2,5)]
+vsd2_filt <- vsd2_filt[c(3,6,1,4,2,5)]
 
 select3<-order(res3_df$padj, decreasing = FALSE)[1:20]
 
-heat3<-as.data.frame(colData(dds2)["dose_group"])
+heat3<-as.data.frame(colData(dds1)["dose_group"])
 
-(ht3<-pheatmap(vsd3_filt[select3,],cluster_rows=FALSE, show_rownames = TRUE,
-               cluster_cols = TRUE, annotation_col = heat3))
+(ht3<-pheatmap(vsd2_filt[select3,], 
+               cluster_rows=FALSE,
+               show_rownames = TRUE,
+               cluster_cols = TRUE,
+               annotation_col = heat3,
+               clustering_callback = callback,
+               annotation_colors = colororder))
 
 #export
 ggsave(files$graph_heat3,plot=ht3,dpi=600)
-
 
 #############################
 #pathway analysis
