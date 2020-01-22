@@ -184,17 +184,19 @@ callback = function(hc,mat){
 #specify naive as green, 6 is pink
 #set color order
 colororder1 = list(
-  dose_group = c("1x10^6 HAd_NP"="#fbb4ae", "Naïve"="#ccebc5"))
+  dose_group = c("Naïve"="#ccebc5", "1x10^6 HAd_NP"="#fbb4ae"))
 
 #plot
 ht1 <- pheatmap(vsd1_filt[select1, ],
                 cluster_rows=FALSE,
                 show_rownames = TRUE,
-                cluster_cols = TRUE,
+                cluster_cols = FALSE,
                 annotation_col = heat1,
                 clustering_callback = callback,
-                annotation_colors = colororder1, 
-                width = 1)
+                annotation_colors = colororder1,
+                cellwidth = 30,
+                cellheight = 8,
+                fontsize = 9)
 
 #export
 ggsave(files$graph_heat1, plot=ht1, dpi=600)
@@ -220,17 +222,19 @@ heat2 <- as.data.frame(colData(dds1)["dose_group"])
 #specify naive as green, 9 is blue
 #set color order
 colororder2 = list(
-  dose_group = c("1x10^9 HAd_NP"="#b3cde4", "Naïve"="#ccebc5"))
+  dose_group = c("Naïve"="#ccebc5", "1x10^9 HAd_NP"="#b3cde4"))
 
 #plot
 ht2 <- pheatmap(vsd2_filt[select2, ], 
-                 cluster_rows=FALSE, 
-                 show_rownames = TRUE,
-                 cluster_cols = TRUE, 
-                 annotation_col = heat2, 
-                 clustering_callback = callback,
-                 annotation_colors = colororder2, 
-                 width = 1)
+                cluster_rows=FALSE, 
+                show_rownames = TRUE,
+                cluster_cols = FALSE, 
+                annotation_col = heat2, 
+                clustering_callback = callback,
+                annotation_colors = colororder2,
+                cellwidth = 30,
+                cellheight = 8,
+                fontsize = 9)
 
 #export
 ggsave(files$graph_heat2, plot=ht2, dpi=600)
@@ -317,16 +321,18 @@ heat3 <- as.data.frame(colData(dds1)["dose_group"])
 #specify naive as green
 #set color order
 colororder3 = list(
-  dose_group = c("1x10^9 HAd_NP"="#b3cde4", "1x10^6 HAd_NP"="#fbb4ae"))
+  dose_group = c("1x10^6 HAd_NP"="#fbb4ae", "1x10^9 HAd_NP"="#b3cde4"))
 
 ht3<-pheatmap(vsd3_filt[select3,], 
-               cluster_rows=FALSE,
-               show_rownames = TRUE,
-               cluster_cols = TRUE,
-               annotation_col = heat3,
-               clustering_callback = callback,
-               annotation_colors = colororder3,
-               width = 1)
+              cluster_rows=FALSE,
+              show_rownames = TRUE,
+              cluster_cols = FALSE,
+              annotation_col = heat3,
+              clustering_callback = callback,
+              annotation_colors = colororder3,
+              cellwidth = 30,
+              cellheight = 8,
+              fontsize = 9)
 
 #export
 ggsave(files$graph_heat3,plot=ht3,dpi=600)
