@@ -273,7 +273,21 @@ heat2<-as.data.frame(colData(dds1)["dose_group"])
 ggsave(files$graph_heat2,plot=ht2,dpi=600)
 
 # 3 C vs B, dds2, res 3
-vsd2<- vst(dds2, blind=FALSE)
+vsd3<- vst(dds2, blind=FALSE)
+vsd3_filt <- as.data.frame(assays(vsd3))
+vsd3_filt[c(1:5)] <-NULL
+#reorder by dose group from left to right, A to C
+vsd3_filt <- vsd3_filt[c(3,6,1,4,2,5)]
+
+select3<-order(res3_df$padj, decreasing = FALSE)[1:20]
+
+heat3<-as.data.frame(colData(dds2)["dose_group"])
+
+(ht3<-pheatmap(vsd3_filt[select3,],cluster_rows=FALSE, show_rownames = TRUE,
+               cluster_cols = TRUE, annotation_col = heat3))
+
+#export
+ggsave(files$graph_heat3,plot=ht3,dpi=600)
 
 
 #############################
