@@ -1,10 +1,10 @@
 SampleID,LibraryID,Organism,Annotation,DoseGroup,Batch,DoseBatch
 SSU_49870,SL407570,mouse,NP-Specific,1x10^6 HAd_NP,One,Conc. (1x10^6 Had-NP) (Batch 1)
 SSU_49871,SL407571,mouse,NP-Specific,1x10^9 HAd_NP,One,Conc. (1x10^9 Had-NP) (Batch 1)
-SSU_49872,SL407572,mouse,NP-Specific,0,One,Conc. 0 (Batch 1)
+SSU_49872,SL407572,mouse,NP-Specific,Naïve,One,Conc. 0 (Batch 1)
 SSU_65981,SL407573,mouse,NP-Specific,1x10^6 HAd_NP,Two,Conc. (1x10^6 Had-NP)
 SSU_65982,SL407574,mouse,NP-Specific,1x10^9 HAd_NP,Two,Conc. (1x10^9 Had-NP)
-SSU_65983,SL407575,mouse,NP-Specific,0,Two,Conc. 0
+SSU_65983,SL407575,mouse,NP-Specific,Naïve,Two,Conc. 0
 SSU_65984,SL334587,mouse,NP-Specific,1x10^6 HAd_NP,Two,Conc. (1x10^6 Had-NP)
 SSU_65985,SL334588,mouse,NP-Specific,1x10^9 HAd_NP,Two,Conc. (1x10^9 Had-NP)
-SSU_65986,SL334589,mouse,NP-Specific,0,Two,Conc. 0
+SSU_65986,SL334589,mouse,NP-Specific,Naïve,Two,Conc. 0
