@@ -50,17 +50,34 @@ summary(res2)
 
 #create data frames of results of each comparison with gene symbol in a column called  ID
 res1_df <- as.data.frame(res1) %>%
-  mutate(ID = as.factor((row.names(res1))))
-stopifnot(nrow(res1_df) == 26485 & ncol(res1_df) == 7)
+  mutate(SYMBOL = as.factor((row.names(res1)))) %>%
+  mutate_at("SYMBOL", toupper)
+
+#get ensembleIDS
+k <- keys(org.Mm.eg.db,keytype="SYMBOL")
+k_select <- as.data.frame(select(org.Mm.eg.db, 
+                                 keys=k, 
+                                 columns="ENSEMBL", 
+                                 keytype="SYMBOL", 
+                                 multiVals="first"))
+
+k_select <- k_select %>%
+  mutate_at("SYMBOL", toupper)
+
+res1_df <- left_join(res1_df, k_select, by = "SYMBOL") 
 
 res2_df <- as.data.frame(res2) %>%
-  mutate(ID = as.factor((row.names(res2))))
-stopifnot(nrow(res2_df) == 26485 & ncol(res2_df) == 7)
+  mutate(SYMBOL = as.factor((row.names(res2)))) %>%
+  mutate_at("SYMBOL", toupper)
+
+res2_df <- left_join(res2_df, k_select, by = "SYMBOL")
 
 #export
+stopifnot(nrow(res1_df) == 26729 & ncol(res1_df) == 8)
 res1_df %>%
   write_delim(files$results_res1, delim=",")
 
+stopifnot(nrow(res2_df) == 26729 & ncol(res1_df) == 8)
 res2_df %>%
   write_delim(files$results_res2, delim=",")
 
@@ -247,10 +264,16 @@ dds1 <- DESeq(dds1)
 res3 <- results(dds1, alpha=0.01, name="dose_group_1x10.9.HAd_NP_vs_1x10.6.HAd_NP")
 summary(res3)
 
+
 #create data frames of results of each comparison with gene symbol in a column called  ID
 res3_df <- as.data.frame(res3) %>%
-  mutate(ID = as.factor((row.names(res3))))
-stopifnot(nrow(res3_df) == 26485 & ncol(res3_df) == 7)
+  mutate(SYMBOL = as.character((row.names(res3)))) %>%
+  mutate_at("SYMBOL", toupper)
+
+#res3
+res3_df <- left_join(res3_df, k_select, by = "SYMBOL")
+
+stopifnot(nrow(res3_df) == 26729 & ncol(res3_df) == 8)
 
 res3_df %>%
   write_delim(files$results_res3, delim=",")
@@ -341,9 +364,9 @@ ggsave(files$graph_heat3,plot=ht3,dpi=600)
 #pathway analysis
 #############################
 #get entrez ids and genenames
-res1$entrez <- mapIds(org.Mm.eg.db,
+res1$ensemble <- mapIds(org.Mm.eg.db,
                      keys=row.names(res1),
-                     column="ENTREZID",
+                     column="ENSEMBL",
                      keytype="SYMBOL",
                      multiVals="first")
 
@@ -356,9 +379,9 @@ res1$name <- mapIds(org.Mm.eg.db,
 head(res1, 10)
 
 #res2
-res2$entrez <- mapIds(org.Mm.eg.db,
+res2$ensemble <- mapIds(org.Mm.eg.db,
                      keys=row.names(res2),
-                     column="ENTREZID",
+                     column="ENSEMBL",
                      keytype="SYMBOL",
                      multiVals="first")
 
@@ -371,9 +394,9 @@ res2$name <- mapIds(org.Mm.eg.db,
 head(res2, 10)
 
 #res3
-res3$entrez <- mapIds(org.Mm.eg.db,
+res3$ensemble <- mapIds(org.Mm.eg.db,
                      keys=row.names(res3),
-                     column="ENTREZID",
+                     column="ENSEMBL",
                      keytype="SYMBOL",
                      multiVals="first")
 
@@ -388,16 +411,16 @@ head(res3, 10)
 #KEGG pathway analysis
 
 #get a matrix of fold changes and entrez ids
-foldchanges1 <- res1$log2FoldChange
-names(foldchanges1) <- res1$entrez
+foldchanges1 <- res1_df$log2FoldChange
+names(foldchanges1) <- res1_df$ENSEMBL
 
 #res2
 foldchanges2 <- res2$log2FoldChange
-names(foldchanges2) <- res2$entrez
+names(foldchanges2) <- res2$name
 
 #res3
 foldchanges3 <- res3$log2FoldChange
-names(foldchanges3) <- res3$entrez
+names(foldchanges3) <- res3$name
 
 #run KEGG pathway analysis
 keggres1 <- gage(foldchanges1, gsets= kegg.sets.mm, same.dir=TRUE)
